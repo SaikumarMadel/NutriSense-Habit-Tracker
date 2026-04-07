@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="NutriSense Onboarding — Set up your profile, goals, and dietary preferences to get personalized nutrition targets.">
+  <title>Welcome to NutriSense | Onboarding</title>
+
+  <link rel="manifest" href="assets/manifest.json">
+  <meta name="theme-color" content="#22c55e">
+
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+  </script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+
+  <style>
+    .onboarding-container {
+      max-width: 450px;
+      margin: 2rem auto;
+    }
+    .step-indicator {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+    .step-dot {
+      width: 40px;
+      height: 6px;
+      background: var(--border);
+      border-radius: 4px;
+      transition: background 0.3s ease;
+    }
+    .step-dot.active {
+      background: var(--accent-green);
+    }
+    .onboarding-step {
+      display: none;
+    }
+    .onboarding-step.active {
+      display: block;
+      animation: fadeIn 0.4s ease-out;
+    }
+    .choice-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+    .choice-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: var(--bg-card);
+    }
+    .choice-card:hover {
+      border-color: var(--accent-green);
+    }
+    .choice-card.selected {
+      border-color: var(--accent-green);
+      background: rgba(34, 197, 94, 0.05);
+      box-shadow: 0 0 0 2px rgba(34,197,94,0.2);
+    }
+    .choice-card input {
+      display: none;
+    }
+    .choice-card i {
+      font-size: 2rem;
+      margin-bottom: 0.25rem;
+    }
+  </style>
+</head>
+<body class="fade-in">
+  <div class="container">
+    <header class="text-center">
+      <h1 class="logo" style="font-size: 2rem;">
+        NutriSense
+      </h1>
+      <p class="text-muted">
+        Personalize your nutrition journey
+      </p>
+    </header>
+
+    <main class="onboarding-container">
+      
+      <!-- Google Sign-In (Hackathon GCP Requirement) -->
+      <script src="https://accounts.google.com/gsi/client" async></script>
+      <div id="g_id_onload"
+           data-client_id="84521369784-placeholder-for-hackathon.apps.googleusercontent.com"
+           data-context="signin"
+           data-ux_mode="popup"
+           data-callback="handleGoogleLogin"
+           data-auto_prompt="false">
+      </div>
+
+      <div class="card text-center mb-3">
+        <h3 class="mb-1" style="font-size: 1.1rem;">Sign in to sync across devices</h3>
+        
+        <div class="g_id_signin"
+             data-type="standard"
+             data-shape="rectangular"
+             data-theme="filled_black"
+             data-text="signin_with"
+             data-size="large"
+             data-logo_alignment="left"
+             style="display: flex; justify-content: center; margin-top: 1rem; margin-bottom: 1.5rem;">
+        </div>
+
+        <button type="button" class="btn btn-ghost btn-full" style="color: var(--accent-orange); border-color: rgba(249, 115, 22, 0.3);" onclick="handleDemoLogin()">
+            <i class="material-icons-round" aria-hidden="true">bolt</i> Load Demo User
+        </button>
+
+        <div class="text-muted mt-2 small">Or create a new profile manually below</div>
+      </div>
+
+      <!-- Script to handle mock Google login -->
+      <script>
+        function handleGoogleLogin(response) {
+          console.log("Google JWT:", response.credential);
+          App.toast("Signed in with Google gracefully!", "success");
+          setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+        }
+
+        function handleDemoLogin() {
+          App.loadDemoData();
+          App.toast("Demo data loaded!", "success");
+          setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+        }
+      </script>
+
+      <div class="step-indicator"
+        role="progressbar"
+        aria-valuenow="1"
+        aria-valuemin="1"
+        aria-valuemax="3"
+        aria-label="Onboarding progress">
+        <div class="step-dot active" id="dot-1"></div>
+        <div class="step-dot" id="dot-2"></div>
+        <div class="step-dot" id="dot-3"></div>
+      </div>
+
+      <form id="onboarding-form" novalidate>
+        <!-- Step 1: Basic Info -->
+        <section class="onboarding-step active"
+          id="step-1"
+          aria-label="Step 1: Personal Details">
+          <div class="card">
+            <h2 class="mb-1">Personal Details</h2>
+            <p class="small text-muted mb-2">
+              This helps us calculate your calorie
+              needs accurately.
+            </p>
+
+            <div class="form-group">
+              <label for="name"
+                class="label">Your Name</label>
+              <input type="text" id="name"
+                name="name" class="input-field"
+                placeholder="John Doe"
+                autocomplete="name"
+                required>
+            </div>
+
+            <fieldset class="form-group"
+              style="border: none; padding: 0;">
+              <legend class="label">Gender</legend>
+              <div class="choice-grid">
+                <label class="choice-card"
+                  id="gender-male">
+                  <input type="radio" name="gender"
+                    value="male" required>
+                  <i class="material-icons-round"
+                    aria-hidden="true">male</i>
+                  <div>Male</div>
+                </label>
+                <label class="choice-card"
+                  id="gender-female">
+                  <input type="radio" name="gender"
+                    value="female">
+                  <i class="material-icons-round"
+                    aria-hidden="true">female</i>
+                  <div>Female</div>
+                </label>
+              </div>
+            </fieldset>
+
+            <div class="form-group">
+              <label for="age"
+                class="label">Age (years)</label>
+              <input type="number" id="age"
+                name="age" class="input-field"
+                placeholder="25" required
+                min="12" max="100">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="form-group">
+                <label for="height"
+                  class="label">Height (cm)</label>
+                <input type="number" id="height"
+                  name="height" class="input-field"
+                  placeholder="175" required
+                  min="100" max="250">
+              </div>
+              <div class="form-group">
+                <label for="weight"
+                  class="label">Weight (kg)</label>
+                <input type="number" id="weight"
+                  name="weight" class="input-field"
+                  placeholder="70" required
+                  min="30" max="300">
+              </div>
+            </div>
+
+            <button type="button"
+              class="btn btn-primary btn-full"
+              onclick="nextStep(2)">
+              Next Step
+            </button>
+          </div>
+        </section>
+
+        <!-- Step 2: Goals & Activity -->
+        <section class="onboarding-step"
+          id="step-2"
+          aria-label="Step 2: Goals and Activity">
+          <div class="card">
+            <h2 class="mb-1">Your Goal</h2>
+            <fieldset style="border:none;padding:0;">
+              <legend class="sr-only">
+                Health Goal
+              </legend>
+              <div class="choice-grid form-group">
+                <label class="choice-card">
+                  <input type="radio" name="goal"
+                    value="lose_weight" required>
+                  <i class="material-icons-round"
+                    aria-hidden="true">
+                    trending_down</i>
+                  <div>Lose Weight</div>
+                </label>
+                <label class="choice-card">
+                  <input type="radio" name="goal"
+                    value="maintain">
+                  <i class="material-icons-round"
+                    aria-hidden="true">balance</i>
+                  <div>Maintain</div>
+                </label>
+                <label class="choice-card">
+                  <input type="radio" name="goal"
+                    value="gain_muscle">
+                  <i class="material-icons-round"
+                    aria-hidden="true">
+                    fitness_center</i>
+                  <div>Gain Muscle</div>
+                </label>
+              </div>
+            </fieldset>
+
+            <div class="form-group">
+              <label for="activity-level"
+                class="label">Activity Level</label>
+              <select id="activity-level"
+                name="activityLevel"
+                class="input-field" required>
+                <option value="sedentary">
+                  Sedentary (Office job)</option>
+                <option value="lightly_active">
+                  Light (1-2 days/week)</option>
+                <option value="moderately">
+                  Moderate (3-5 days/week)</option>
+                <option value="very_active">
+                  Very Active (Daily)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="diet-type"
+                class="label">Diet Type</label>
+              <select id="diet-type"
+                name="dietType"
+                class="input-field" required>
+                <option value="balanced">
+                  Balanced</option>
+                <option value="vegetarian">
+                  Vegetarian</option>
+                <option value="vegan">
+                  Vegan</option>
+                <option value="keto">
+                  Keto</option>
+              </select>
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+              <button type="button"
+                class="btn btn-ghost btn-full"
+                onclick="nextStep(1)">Back</button>
+              <button type="button"
+                class="btn btn-primary btn-full"
+                onclick="nextStep(3)">
+                Next Step
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Step 3: Allergies -->
+        <section class="onboarding-step"
+          id="step-3"
+          aria-label="Step 3: Allergies">
+          <div class="card">
+            <h2 class="mb-1">Allergies / Avoid</h2>
+            <p class="small text-muted mb-2">
+              Select any ingredients you'd like
+              to skip in meal plans.
+            </p>
+
+            <fieldset style="border:none;padding:0;">
+              <legend class="sr-only">
+                Allergens to avoid
+              </legend>
+              <div class="choice-grid form-group">
+                <label class="choice-card">
+                  <input type="checkbox"
+                    name="allergies" value="dairy">
+                  <div>🥛 Dairy</div>
+                </label>
+                <label class="choice-card">
+                  <input type="checkbox"
+                    name="allergies" value="gluten">
+                  <div>🌾 Gluten</div>
+                </label>
+                <label class="choice-card">
+                  <input type="checkbox"
+                    name="allergies" value="nuts">
+                  <div>🥜 Nuts</div>
+                </label>
+                <label class="choice-card">
+                  <input type="checkbox"
+                    name="allergies"
+                    value="shellfish">
+                  <div>🦐 Shellfish</div>
+                </label>
+                <label class="choice-card">
+                  <input type="checkbox"
+                    name="allergies" value="soy">
+                  <div>🫘 Soy</div>
+                </label>
+                <label class="choice-card">
+                  <input type="checkbox"
+                    name="allergies" value="eggs">
+                  <div>🥚 Eggs</div>
+                </label>
+              </div>
+            </fieldset>
+
+            <div style="display: flex; gap: 1rem;">
+              <button type="button"
+                class="btn btn-ghost btn-full"
+                onclick="nextStep(2)">Back</button>
+              <button type="submit"
+                class="btn btn-primary btn-full">
+                Finish Setup
+              </button>
+            </div>
+          </div>
+        </section>
+      </form>
+    </main>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/profile.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    /**
+     * Navigates to a specific onboarding step
+     * @param {number} step - Step number (1-3)
+     */
+    function nextStep(step) {
+      const current =
+        document.querySelector(
+          '.onboarding-step.active'
+        );
+      const currentNum =
+        parseInt(current.id.split('-')[1]);
+
+      // Only validate when going forward
+      if (step > currentNum) {
+        const inputs = current.querySelectorAll(
+          'input[required], select[required]'
+        );
+        let valid = true;
+
+        inputs.forEach(input => {
+          if (input.type === 'radio') {
+            const checked = current.querySelector(
+              `input[name="${input.name}"]:checked`
+            );
+            if (!checked) valid = false;
+          } else if (!input.value) {
+            valid = false;
+          }
+        });
+
+        if (!valid) {
+          App.toast(
+            'Please fill all required fields.',
+            'error'
+          );
+          return;
+        }
+      }
+
+      // Switch steps
+      document.querySelectorAll(
+        '.onboarding-step'
+      ).forEach(s => s.classList.remove('active'));
+      document.querySelectorAll(
+        '.step-dot'
+      ).forEach(d => d.classList.remove('active'));
+
+      document.getElementById(`step-${step}`)
+        .classList.add('active');
+
+      for (let i = 1; i <= step; i++) {
+        document.getElementById(`dot-${i}`)
+          .classList.add('active');
+      }
+
+      // Update progress bar
+      document.querySelector('.step-indicator')
+        .setAttribute('aria-valuenow', step);
+    }
+
+    // Choice card visual feedback
+    document.addEventListener('change', (e) => {
+      if (e.target.type === 'radio' ||
+          e.target.type === 'checkbox') {
+        const form = e.target.closest('form');
+        const name = e.target.name;
+
+        // For radios, clear siblings first
+        if (e.target.type === 'radio') {
+          form.querySelectorAll(
+            `input[name="${name}"]`
+          ).forEach(input => {
+            input.closest('.choice-card')
+              .classList.remove('selected');
+          });
+        }
+
+        const cards = form.querySelectorAll(
+          '.choice-card'
+        );
+        cards.forEach(card => {
+          const input = card.querySelector('input');
+          if (input && input.checked) {
+            card.classList.add('selected');
+          } else if (input &&
+                     input.type === 'checkbox') {
+            card.classList.remove('selected');
+          }
+        });
+      }
+    });
+
+    // Form submission
+    document.getElementById('onboarding-form')
+      .addEventListener('submit', (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const data = {
+          name: fd.get('name'),
+          gender: fd.get('gender'),
+          age: parseInt(fd.get('age')),
+          height: parseInt(fd.get('height')),
+          weight: parseInt(fd.get('weight')),
+          goal: fd.get('goal'),
+          activityLevel: fd.get('activityLevel'),
+          dietType: fd.get('dietType'),
+          allergies: fd.getAll('allergies')
+        };
+
+        // Validate numeric ranges
+        if (data.age < 12 || data.age > 100) {
+          App.toast('Age must be 12-100', 'error');
+          return;
+        }
+        if (data.height < 100 ||
+            data.height > 250) {
+          App.toast(
+            'Height must be 100-250 cm', 'error'
+          );
+          return;
+        }
+        if (data.weight < 30 ||
+            data.weight > 300) {
+          App.toast(
+            'Weight must be 30-300 kg', 'error'
+          );
+          return;
+        }
+
+        const profile = Profile.saveProfile(data);
+        App.toast(
+          `Welcome, ${data.name}! Your target is ${profile.dailyTarget} kcal/day`
+        );
+
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1500);
+      });
+  </script>
+</body>
+</html>

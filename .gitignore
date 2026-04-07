@@ -1,0 +1,14 @@
+# Dependency directories
+node_modules/
+
+# IDE and AI Tool configs
+.vscode/
+.gemini/
+.idea/
+
+# Firebase configuration & temporary files
+.firebase/
+firebase-debug.log
+
+# Mac OS folder metadata
+.DS_Store

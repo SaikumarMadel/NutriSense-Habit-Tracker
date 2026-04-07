@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="NutriSense 7-Day Meal Plan — AI-style personalized meal plans based on your diet and calorie targets.">
+  <title>Your Personal Plan | NutriSense</title>
+
+  <link rel="manifest" href="assets/manifest.json">
+  <meta name="theme-color" content="#22c55e">
+
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+  </script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <style>
+    .day-selector {
+      display: flex;
+      overflow-x: auto;
+      gap: 0.5rem;
+      padding-bottom: 1rem;
+      margin-bottom: 2rem;
+      scrollbar-width: none;
+    }
+    .day-selector::-webkit-scrollbar {
+      display: none;
+    }
+    .day-btn {
+      flex: 0 0 60px;
+      height: 60px;
+      border-radius: var(--radius-md);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-primary);
+      transition: all 0.2s ease;
+    }
+    .day-btn:hover {
+      border-color: var(--accent-green);
+    }
+    .day-btn.active {
+      background: var(--accent-green);
+      color: #000;
+      border-color: var(--accent-green);
+    }
+    .day-btn span {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .day-btn strong {
+      font-size: 1.25rem;
+    }
+    .meal-card {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .slot-label {
+      width: 80px;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      color: var(--accent-blue);
+      letter-spacing: 0.05em;
+    }
+    .meal-info { flex: 1; }
+    .meal-meta {
+      display: flex;
+      gap: 0.75rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+  </style>
+</head>
+<body class="fade-in">
+  <div class="container">
+    <header class="card-header">
+      <a href="index.html"
+        aria-label="Back to dashboard">
+        <i class="material-icons-round"
+          aria-hidden="true">arrow_back</i>
+      </a>
+      <h2 class="text-center">7-Day Meal Plan</h2>
+      <button class="btn btn-ghost"
+        onclick="regeneratePlan()"
+        id="regen-btn"
+        aria-label="Regenerate meal plan">
+        <i class="material-icons-round"
+          aria-hidden="true">refresh</i>
+      </button>
+    </header>
+
+    <main>
+      <div class="day-selector" id="day-selector"
+        role="tablist"
+        aria-label="Select day">
+      </div>
+
+      <div id="plan-content"
+        role="tabpanel"
+        aria-live="polite">
+      </div>
+    </main>
+
+    <nav class="nav-bar"
+      aria-label="Main navigation">
+      <a href="index.html" class="nav-item">
+        <i class="material-icons-round"
+          aria-hidden="true">home</i>
+        <span>Home</span>
+      </a>
+      <a href="planner.html"
+        class="nav-item active"
+        aria-current="page">
+        <i class="material-icons-round"
+          aria-hidden="true">restaurant_menu</i>
+        <span>Planner</span>
+      </a>
+      <a href="tracker.html" class="nav-item">
+        <i class="material-icons-round"
+          aria-hidden="true">add_box</i>
+        <span>Tracker</span>
+      </a>
+      <a href="insights.html" class="nav-item">
+        <i class="material-icons-round"
+          aria-hidden="true">bar_chart</i>
+        <span>Insights</span>
+      </a>
+    </nav>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/profile.js"></script>
+  <script src="js/tracker.js"></script>
+  <script src="js/planner.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    let currentPlan = null;
+    let selectedDay = 0;
+
+    document.addEventListener('DOMContentLoaded',
+      () => {
+        currentPlan = Planner.getPlan();
+        renderDays();
+        renderDay(0);
+      }
+    );
+
+    function renderDays() {
+      const sel =
+        document.getElementById('day-selector');
+      sel.innerHTML = '';
+      for (let i = 0; i < 7; i++) {
+        const btn = document.createElement('div');
+        btn.className =
+          `day-btn ${i === selectedDay ? 'active' : ''}`;
+        btn.setAttribute('role', 'tab');
+        btn.setAttribute('tabindex', '0');
+        btn.setAttribute('aria-selected',
+          i === selectedDay ? 'true' : 'false');
+        btn.setAttribute('aria-label',
+          `Day ${i + 1}`);
+        btn.onclick = () => selectDay(i);
+        btn.onkeydown = (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            selectDay(i);
+          }
+        };
+        btn.innerHTML =
+          `<span>Day</span><strong>${i + 1}</strong>`;
+        sel.appendChild(btn);
+      }
+    }
+
+    function selectDay(day) {
+      selectedDay = day;
+      renderDays();
+      renderDay(day);
+    }
+
+    function renderDay(dayIndex) {
+      const dayData = currentPlan[dayIndex];
+      const content =
+        document.getElementById('plan-content');
+
+      let html = `
+        <div class="card mb-2"
+          style="background: rgba(34,197,94,0.05);
+            border-color: var(--accent-green);">
+          <div style="display: flex;
+            justify-content: space-between;
+            align-items: center;">
+            <div>
+              <p class="small text-muted">
+                Daily Total</p>
+              <h3>${dayData.totals.calories} kcal</h3>
+            </div>
+            <div style="text-align: right;">
+              <p class="small text-muted">
+                P / C / F</p>
+              <strong>
+                ${dayData.totals.protein}g /
+                ${dayData.totals.carbs}g /
+                ${dayData.totals.fat}g
+              </strong>
+            </div>
+          </div>
+        </div>
+      `;
+
+      dayData.meals.forEach((meal, idx) => {
+        html += `
+          <article class="card meal-card slide-up"
+            style="animation-delay: ${idx * 0.1}s">
+            <div class="slot-label">
+              ${meal.slot}
+            </div>
+            <div class="meal-info">
+              <h4>${App.sanitize(meal.name)}</h4>
+              <div class="meal-meta">
+                <span>
+                  <i class="material-icons-round"
+                    style="font-size:12px;
+                      vertical-align:middle;"
+                    aria-hidden="true">
+                    local_fire_department</i>
+                  ${meal.calories} kcal
+                </span>
+                <span>
+                  <i class="material-icons-round"
+                    style="font-size:12px;
+                      vertical-align:middle;"
+                    aria-hidden="true">
+                    fitness_center</i>
+                  ${meal.protein}g protein
+                </span>
+              </div>
+            </div>
+            <button class="btn btn-ghost"
+              aria-label="Log ${App.sanitize(meal.name)} to today"
+              onclick="logPlannedMeal('${meal.id}')">
+              <i class="material-icons-round"
+                aria-hidden="true">add</i>
+            </button>
+          </article>
+        `;
+      });
+
+      content.innerHTML = html;
+    }
+
+    function regeneratePlan() {
+      const btn =
+        document.getElementById('regen-btn');
+      btn.classList.add('pulse');
+      currentPlan = Planner.generatePlan();
+      selectDay(0);
+      setTimeout(() => {
+        btn.classList.remove('pulse');
+      }, 1000);
+      App.toast('New meal plan generated! 🍽️');
+    }
+
+    /**
+     * Logs a planned meal to today's tracker
+     * @param {string} mealId
+     */
+    function logPlannedMeal(mealId) {
+      const meal = Planner.getMealById(mealId);
+      if (meal) {
+        Tracker.logMeal({
+          name: meal.name,
+          calories: meal.calories,
+          protein: meal.protein,
+          carbs: meal.carbs,
+          fat: meal.fat,
+          slot: meal.slot
+        });
+        App.toast(
+          `${meal.name} added to today's log ✅`
+        );
+      }
+    }
+  </script>
+</body>
+</html>
